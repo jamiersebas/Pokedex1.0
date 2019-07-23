@@ -1,6 +1,8 @@
 package com.example.pokedex;
 
 import android.content.Context;
+import android.content.Intent;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,6 +13,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.example.pokedex.Activities.DetailActivity;
 import com.example.pokedex.Models.Pokemon;
 
 import java.util.ArrayList;
@@ -50,7 +53,12 @@ public class ListaPokemonAdapter extends RecyclerView.Adapter<ListaPokemonAdapte
         return 0;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public void adicionarListaPokemon (ArrayList<Pokemon>listaPokemon){
+        dataset.addAll(listaPokemon);
+        notifyDataSetChanged();
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         private ImageView fotoImageView;
         private TextView nombreTextView;
@@ -62,6 +70,18 @@ public class ListaPokemonAdapter extends RecyclerView.Adapter<ListaPokemonAdapte
             fotoImageView = (ImageView) itemView.findViewById(R.id.fotoImageView);
             nombreTextView = (TextView) itemView.findViewById(R.id.nombreTextView);
             tarjetas = (CardView) itemView.findViewById(R.id.tarjetas);
+        }
+
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()){
+                case R.id.tarjetas:
+                    Intent i = new Intent(v.getContext(), DetailActivity.class);
+                    v.getContext().startActivity(i);
+
+                    Snackbar.make(v,"Hola Pokemon", Snackbar.LENGTH_LONG).show();
+                    break;
+            }
         }
     }
 }

@@ -7,11 +7,16 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
 import com.example.pokedex.ListaPokemonAdapter;
+import com.example.pokedex.Models.Pokemon;
 import com.example.pokedex.Models.PokemonRespuesta;
 import com.example.pokedex.Pokeapi.PokemonService;
 import com.example.pokedex.R;
 
+import java.util.ArrayList;
+
 import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -36,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(listaPokemonAdapter);
         recyclerView.setHasFixedSize(true);
 
-        final GridLayoutManager layoutManager = new GridLayoutManager(this,3);
+        final GridLayoutManager layoutManager = new GridLayoutManager(this, 3);
         recyclerView.setLayoutManager(layoutManager);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -44,18 +49,18 @@ public class MainActivity extends AppCompatActivity {
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                if(dy > 0 ){
+                if (dy > 0) {
                     int visibleItemCount = layoutManager.getChildCount();
                     int totalItemCount = layoutManager.getItemCount();
                     int pastVisibleItems = layoutManager.findLastCompletelyVisibleItemPosition();
 
-                    if(aptoParaCargar) {
-                     if ((visibleItemCount+ pastVisibleItems)>= totalItemCount)  {
-                         Log.i(TAG, "Llegamos al final");
-                         aptoParaCargar = false;
-                         offset+= 20;
-                         obtenerDatos(offset);
-                     }
+                    if (aptoParaCargar) {
+                        if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                            Log.i(TAG, "Llegamos al final");
+                            aptoParaCargar = false;
+                            offset += 20;
+                            obtenerDatos(offset);
+                        }
 
                     }
                 }
@@ -63,16 +68,35 @@ public class MainActivity extends AppCompatActivity {
         });
 
         retrofit = new Retrofit.Builder()
-            .baseUrl("http://pokeapi.co/api/v2")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build();
+                .baseUrl("http://pokeapi.co/api/v2")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
         aptoParaCargar = true;
         offset = 0;
         obtenerDatos(offset);
-
-        public void obtenerDatos(int offset)
+    }
+        private void obtenerDatos(int offset){
             PokemonService service = retrofit.create(PokemonService.class);
             Call<PokemonRespuesta>pokemonRespuestaCall = service.obtenerListaPokemon(20,offset);
+
+            pokemonRespuestaCall.enqueue(new Callback<PokemonRespuesta>() {
+                @Override
+                public void onResponse(Call<PokemonRespuesta> call, Response<PokemonRespuesta> response) {
+                    aptoParaCargar = true;
+                    if(response.isSuccessful()){
+                        PokemonRespuesta pokemonRespuesta = response.body();
+                        ArrayList<Pokemon> listaPokemon = pokemonRespuesta.getResults();
+                        listaPokemonAdapter.adicionarListaPokemon(listaPokemon);
+                    }else
+                        Log.e(TAG, "on response"+response.errorBody());
+                }
+
+                @Override
+                public void onFailure(Call<PokemonRespuesta> call, Throwable t) {
+                    aptoParaCargar = true;
+                    Log.e(TAG, "on failure"+t.getMessage());
+                }
+            });
 }
 }
